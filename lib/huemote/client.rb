@@ -6,6 +6,7 @@ module Huemote
         constants.collect {|const_name| const_get(const_name)}.select {|const| const.class == Module}.detect do |mod|
           fulfilled = false
           begin
+            next unless mod.const_defined?(:DEPENDENCIES)
             mod.const_get(:DEPENDENCIES).map{|d|require d}
             fulfilled = true
           rescue LoadError
@@ -15,61 +16,55 @@ module Huemote
       end
     end
 
-    module Manticore
-      DEPENDENCIES = ['manticore']
-
+    module SmartLib
       %w{get post put}.each do |name|
         define_method name do |*args|
-          _req(::Manticore,name,*args).call
+          _req(@lib,name,*args).tap{|r|r.call if @call}
         end
       end
+    end
 
+    module Manticore
+      DEPENDENCIES = ['manticore']
+      def self.extended(base)
+        base.instance_variable_set(:@lib,::Manticore)
+        base.instance_variable_set(:@call,true)
+        base.extend(SmartLib)
+      end
     end
 
     module Typhoeus
       DEPENDENCIES = ['typhoeus']
-
-      %w{get post put}.each do |name|
-        define_method name do |*args|
-          _req(::Typhoeus,name,*args)
-        end
+      def self.extended(base)
+        base.instance_variable_set(:@lib,::Typhoeus)
+        base.extend(SmartLib)
       end
-
     end
 
     module HTTParty
       DEPENDENCIES = ['httparty']
-
-      %w{get post put}.each do |name|
-        define_method name do |*args|
-          _req(::HTTParty,name,*args)
-        end
+      def self.extended(base)
+        base.instance_variable_set(:@lib,::HTTParty)
+        base.extend(SmartLib)
       end
-
     end
 
     module NetHTTP
       DEPENDENCIES = ['net/http','uri']
 
-      def get(url,body=nil,headers=nil)
-        request(Net::HTTP::Get,url,body,headers)
-      end
-
-      def post(url,body=nil,headers=nil)
-        request(Net::HTTP::Post,url,body,headers)
-      end
-
-      def put(url,body=nil,headers=nil)
-        request(Net::HTTP::Put,url,body,headers)
-      end
-
-      def request(klass,url,body,headers)
+      def request(klass,url,body=nil,headers=nil)
         uri = URI.parse(url)
         http = Net::HTTP.new(uri.host, uri.port)
         request = klass.new(uri.request_uri)
         headers.map{|k,v|request[k]=v} if headers
         (request.body = body) if body
         response = http.request(request)
+      end
+
+      %w{get post put}.each do |name|
+        define_method name do |*args|
+          request(Net::HTTP.const_get(name.capitalize),*args)
+        end
       end
 
     end
