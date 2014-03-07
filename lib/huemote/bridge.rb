@@ -27,6 +27,18 @@ EOF
         end
       end
 
+      def discover(socket = nil)
+        @bridge = nil
+        client  = Huemote::Client.new
+        body    = nil
+
+        devices, socket = fetch_upnp(true,socket)
+        device = devices.detect{|host,port|body = client.get("http://#{host}:#{port}/description.xml").body; body.match('<modelURL>http://www.meethue.com</modelURL>')}
+        @bridge = self.new(*device,body)
+
+        socket
+      end
+
       private
 
       def ssdp_socket
@@ -38,8 +50,8 @@ EOF
         socket
       end
 
-      def fetch_upnp
-        socket = ssdp_socket
+      def fetch_upnp(return_socket=false,socket=nil)
+        socket ||= ssdp_socket
         devices = []
 
         3.times { socket.send(DISCOVERY, 0, MULTICAST_ADDR, PORT) }
@@ -62,10 +74,12 @@ EOF
         sleep 1
         parser.kill
 
-        socket.close
-
-        devices.uniq
-
+        if return_socket
+          [devices.uniq,socket]
+        else
+          socket.close
+          devices.uniq
+        end
       end
     end
 

@@ -6,4 +6,10 @@ module Huemote
   require_relative './huemote/client'
   require_relative './huemote/light'
   require_relative './huemote/bridge'
+
+  class << self
+    def discover(socket=nil)
+      Huemote::Bridge.discover
+    end
+  end
 end
