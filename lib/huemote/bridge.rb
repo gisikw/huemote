@@ -50,6 +50,17 @@ EOF
         socket
       end
 
+      def listen(socket,devices)
+        sleep 1
+        Thread.start do
+          loop do
+            message, _ = socket.recvfrom(1024)
+            match = message.match(/LOCATION:\s+http:\/\/([^\/]+)/)
+            devices << match[1].split(':') if match
+          end
+        end
+      end
+
       def fetch_upnp(return_socket=false,socket=nil)
         socket ||= ssdp_socket
         devices = []
@@ -61,24 +72,14 @@ EOF
         # a working JRuby solution that doesn't require this kind of hackery,
         # by all means, submit a pull request!
 
-        sleep 1
-
-        parser = Thread.start do
-          loop do
-            message, _ = socket.recvfrom(1024)
-            match = message.match(/LOCATION:\s+http:\/\/([^\/]+)/)
-            devices << match[1].split(':') if match
-          end
-        end
-
-        sleep 1
-        parser.kill
+        listen(socket,devices).tap{|l|sleep 1; l.kill}
+        devices.uniq!
 
         if return_socket
-          [devices.uniq,socket]
+          [devices,socket]
         else
           socket.close
-          devices.uniq
+          devices
         end
       end
     end
