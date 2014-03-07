@@ -18,16 +18,10 @@ module Huemote
     module Manticore
       DEPENDENCIES = ['manticore']
 
-      def get(*args)
-        _req(::Manticore,:get,*args).call
-      end
-
-      def post(*args)
-        _req(::Manticore,:post,*args).call
-      end
-
-      def put(*args)
-        _req(::Manticore,:put,*args).call
+      %w{get post put}.each do |name|
+        define_method name do |*args|
+          _req(::Manticore,name,*args).call
+        end
       end
 
     end
@@ -35,16 +29,10 @@ module Huemote
     module Typhoeus
       DEPENDENCIES = ['typhoeus']
 
-      def get(*args)
-        _req(::Typhoeus,:get,*args)
-      end
-
-      def post(*args)
-        _req(::Typhoeus,:post,*args)
-      end
-
-      def put(*args)
-        _req(::Typhoeus,:put,*args)
+      %w{get post put}.each do |name|
+        define_method name do |*args|
+          _req(::Typhoeus,name,*args)
+        end
       end
 
     end
@@ -52,16 +40,10 @@ module Huemote
     module HTTParty
       DEPENDENCIES = ['httparty']
 
-      def get(*args)
-        _req(::HTTParty,:get,*args)
-      end
-
-      def post(*args)
-        _req(::HTTParty,:post,*args)
-      end
-
-      def put(*args)
-        _req(::HTTParty,:put,*args)
+      %w{get post put}.each do |name|
+        define_method name do |*args|
+          _req(::HTTParty,name,*args)
+        end
       end
 
     end
