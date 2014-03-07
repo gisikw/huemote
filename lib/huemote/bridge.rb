@@ -27,6 +27,8 @@ EOF
         end
       end
 
+      private
+
       def discover(socket = nil)
         @bridge = nil
         client  = Huemote::Client.new
@@ -38,8 +40,6 @@ EOF
 
         socket
       end
-
-      private
 
       def ssdp_socket
         socket = UDPSocket.new
@@ -57,9 +57,9 @@ EOF
         3.times { socket.send(DISCOVERY, 0, MULTICAST_ADDR, PORT) }
 
         # The following is a bit silly, but is necessary for JRuby support,
-        # which seems to have some issues with socket interruption.
-        # If you have a working JRuby solution that doesn't require this
-        # kind of hackery, by all means, submit a pull request!
+        # which seems to have some issues with socket interruption. If you have
+        # a working JRuby solution that doesn't require this kind of hackery,
+        # by all means, submit a pull request!
 
         sleep 1
 
@@ -91,21 +91,23 @@ EOF
     end
 
     def _get(path,params={})
-      auth! unless authed?
-      JSON.parse(client.get("#{base_url}/api/#{USERNAME}/#{path}",params.to_json).body)
+      request(:get,path,params)
     end
 
     def _post(path,params={})
-      auth! unless authed?
-      JSON.parse(client.post("#{base_url}/api/#{USERNAME}/#{path}",params.to_json).body)
+      request(:post,path,params)
     end
 
     def _put(path,params={})
-      auth! unless authed?
-      JSON.parse(client.put("#{base_url}/api/#{USERNAME}/#{path}",params.to_json).body)
+      request(:put,path,params)
     end
 
     private
+
+    def request(method,path,params)
+      auth! unless authed?
+      JSON.parse(client.send(method,"#{base_url}/api/#{USERNAME}/#{path}",params.to_json).body)
+    end
 
     def base_url
       @base_url ||= "http://#{@host}:#{@port}"

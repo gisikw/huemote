@@ -19,15 +19,15 @@ module Huemote
       DEPENDENCIES = ['manticore']
 
       def get(*args)
-        _get(::Manticore,*args).call
+        _req(::Manticore,:get,*args).call
       end
 
       def post(*args)
-        _post(::Manticore,*args).call
+        _req(::Manticore,:post,*args).call
       end
 
       def put(*args)
-        _put(::Manticore,*args).call
+        _req(::Manticore,:put,*args).call
       end
 
     end
@@ -36,15 +36,15 @@ module Huemote
       DEPENDENCIES = ['typhoeus']
 
       def get(*args)
-        _get(::Typhoeus,*args)
+        _req(::Typhoeus,:get,*args)
       end
 
       def post(*args)
-        _post(::Typhoeus,*args)
+        _req(::Typhoeus,:post,*args)
       end
 
       def put(*args)
-        _put(::Typhoeus,*args)
+        _req(::Typhoeus,:put,*args)
       end
 
     end
@@ -53,15 +53,15 @@ module Huemote
       DEPENDENCIES = ['httparty']
 
       def get(*args)
-        _get(::HTTParty,*args)
+        _req(::HTTParty,:get,*args)
       end
 
       def post(*args)
-        _post(::HTTParty,*args)
+        _req(::HTTParty,:post,*args)
       end
 
       def put(*args)
-        _put(::HTTParty,*args)
+        _req(::HTTParty,:put,*args)
       end
 
     end
@@ -70,26 +70,21 @@ module Huemote
       DEPENDENCIES = ['net/http','uri']
 
       def get(url,body=nil,headers=nil)
-        uri = URI.parse(url)
-        http = Net::HTTP.new(uri.host, uri.port)
-        request = Net::HTTP::Get.new(uri.request_uri)
-        headers.map{|k,v|request[k]=v} if headers
-        response = http.request(request)
+        request(Net::HTTP::Get,url,body,headers)
       end
 
       def post(url,body=nil,headers=nil)
-        uri = URI.parse(url)
-        http = Net::HTTP.new(uri.host, uri.port)
-        request = Net::HTTP::Post.new(uri.request_uri)
-        headers.map{|k,v|request[k]=v} if headers
-        (request.body = body) if body
-        response = http.request(request)
+        request(Net::HTTP::Post,url,body,headers)
       end
 
       def put(url,body=nil,headers=nil)
+        request(Net::HTTP::Put,url,body,headers)
+      end
+
+      def request(klass,url,body,headers)
         uri = URI.parse(url)
         http = Net::HTTP.new(uri.host, uri.port)
-        request = Net::HTTP::Put.new(uri.request_uri)
+        request = klass.new(uri.request_uri)
         headers.map{|k,v|request[k]=v} if headers
         (request.body = body) if body
         response = http.request(request)
@@ -103,16 +98,8 @@ module Huemote
 
     private
 
-    def _get(lib,url,body=nil,headers=nil)
-      lib.get(url,{body:body,headers:headers})
-    end
-
-    def _post(lib,url,body=nil,headers=nil)
-      lib.post(url,{body:body,headers:headers})
-    end
-
-    def _put(lib,url,body=nil,headers=nil)
-      lib.put(url,{body:body,headers:headers})
+    def _req(lib,method,url,body=nil,headers=nil)
+      lib.send(method,url,{body:body,headers:headers})
     end
 
   end
