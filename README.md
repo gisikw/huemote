@@ -1,4 +1,4 @@
-# Huemote [![Build Status](https://travis-ci.org/gisikw/huemote.png)](https://travis-ci.org/gisikw/huemote) [![Gem Version](https://badge.fury.io/rb/huemote.png)](http://badge.fury.io/rb/huemote) [![Coverage Status](https://coveralls.io/repos/gisikw/huemote/badge.png)](https://coveralls.io/r/gisikw/huemote) [![Code Climate](https://codeclimate.com/github/gisikw/huemote.png)](https://codeclimate.com/github/gisikw/huemote)
+# Huemote [![Build Status](https://travis-ci.org/gisikw/huemote.png?branch=master)](https://travis-ci.org/gisikw/huemote) [![Gem Version](https://badge.fury.io/rb/huemote.png)](http://badge.fury.io/rb/huemote) [![Coverage Status](https://coveralls.io/repos/gisikw/huemote/badge.png)](https://coveralls.io/r/gisikw/huemote) [![Code Climate](https://codeclimate.com/github/gisikw/huemote.png)](https://codeclimate.com/github/gisikw/huemote)
 
 Huemote is an interface for controlling Philips Hue lights. Unlike other implementations, it does not rely on Philips backend servers for upnp discovery.
 
