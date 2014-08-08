@@ -4,7 +4,8 @@ require 'ipaddr'
 module Huemote
   class Bridge
     DEVICE_TYPE = "Huemote"
-    USERNAME = "HuemoteRubyGem"
+    GOOGLE_IP   = "64.233.187.99"
+    USERNAME    = "HuemoteRubyGem"
 
     class << self
       def get
@@ -13,10 +14,11 @@ module Huemote
 
       private
 
-      def discover(broadcast = '255.255.255.255')
+      def discover
         client  = Huemote::Client.new
-        arp = `ping -t 1 #{broadcast} > /dev/null && arp -na | grep 0:17:88`.split("\n")[0]
-        host = /\((\d+\.\d+\.\d+\.\d+)\)/.match(arp)[1]
+        ip = UDPSocket.open {|s| s.connect(GOOGLE_IP, 1); s.addr.last}
+        device = `nmap -sP #{ip.split('.')[0..-2].join('.')}.* > /dev/null && arp -na | grep 0:17:88`.split("\n")[0]
+        host = /\((\d+\.\d+\.\d+\.\d+)\)/.match(device)[1]
 
         body = client.get("http://#{host}:80/description.xml").body
 
