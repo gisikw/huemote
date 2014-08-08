@@ -41,13 +41,13 @@ module Huemote
       end
     end
 
-    module HTTParty
-      DEPENDENCIES = ['httparty']
-      def self.extended(base)
-        base.instance_variable_set(:@lib,::HTTParty)
-        base.extend(SmartLib)
-      end
-    end
+    #module HTTParty
+    #  DEPENDENCIES = ['httparty']
+    #  def self.extended(base)
+    #    base.instance_variable_set(:@lib,::HTTParty)
+    #    base.extend(SmartLib)
+    #  end
+    #end
 
     module NetHTTP
       DEPENDENCIES = ['net/http','uri']

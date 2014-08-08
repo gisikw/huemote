@@ -8,8 +8,8 @@ module Huemote
   require_relative './huemote/bridge'
 
   class << self
-    def discover(socket=nil)
-      Huemote::Bridge.discover
+    def discover(broadcast='255.255.255.255')
+      Huemote::Bridge.send(:discover,broadcast)
     end
   end
 end

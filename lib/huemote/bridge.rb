@@ -5,82 +5,22 @@ module Huemote
   class Bridge
     DEVICE_TYPE = "Huemote"
     USERNAME = "HuemoteRubyGem"
-    MULTICAST_ADDR = '239.255.255.250'
-    BIND_ADDR = '0.0.0.0'
-    PORT = 1900
-    DISCOVERY= <<-EOF
-M-SEARCH * HTTP/1.1\r
-HOST: 239.255.255.250:1900\r
-MAN: "ssdp:discover"\r
-MX: 10\r
-ST: urn:schemas-upnp-org:device:Basic:1\r
-\r
-EOF
 
     class << self
       def get
-        @bridge ||= begin
-          client = Huemote::Client.new
-          body = nil
-          device = fetch_upnp.detect{|host,port|body = client.get("http://#{host}:#{port}/description.xml").body; body.match('<modelURL>http://www.meethue.com</modelURL>')}
-          self.new(*device,body)
-        end
+        @bridge ||= discover
       end
 
       private
 
-      def discover(socket = nil)
-        @bridge = nil
+      def discover(broadcast = '255.255.255.255')
         client  = Huemote::Client.new
-        body    = nil
+        arp = `ping -t 1 #{broadcast} > /dev/null && arp -na | grep 0:17:88`.split("\n")[0]
+        host = /\((\d+\.\d+\.\d+\.\d+)\)/.match(arp)[1]
 
-        devices, socket = fetch_upnp(true,socket)
-        device = devices.detect{|host,port|body = client.get("http://#{host}:#{port}/description.xml").body; body.match('<modelURL>http://www.meethue.com</modelURL>')}
-        @bridge = self.new(*device,body)
+        body = client.get("http://#{host}:80/description.xml").body
 
-        socket
-      end
-
-      def ssdp_socket
-        socket = UDPSocket.new
-        socket.setsockopt(Socket::IPPROTO_IP, Socket::IP_ADD_MEMBERSHIP, IPAddr.new(MULTICAST_ADDR).hton + IPAddr.new(BIND_ADDR).hton)
-        socket.setsockopt(Socket::IPPROTO_IP, Socket::IP_MULTICAST_TTL, 1)
-        socket.setsockopt(Socket::SOL_SOCKET, Socket::SO_REUSEPORT, 1)
-        socket.bind(BIND_ADDR,PORT)
-        socket
-      end
-
-      def listen(socket,devices)
-        sleep 1
-        Thread.start do
-          loop do
-            message, _ = socket.recvfrom(1024)
-            match = message.match(/LOCATION:\s+http:\/\/([^\/]+)/)
-            devices << match[1].split(':') if match
-          end
-        end
-      end
-
-      def fetch_upnp(return_socket=false,socket=nil)
-        socket ||= ssdp_socket
-        devices = []
-
-        3.times { socket.send(DISCOVERY, 0, MULTICAST_ADDR, PORT) }
-
-        # The following is a bit silly, but is necessary for JRuby support,
-        # which seems to have some issues with socket interruption. If you have
-        # a working JRuby solution that doesn't require this kind of hackery,
-        # by all means, submit a pull request!
-
-        listen(socket,devices).tap{|l|sleep 1; l.kill}
-        devices.uniq!
-
-        if return_socket
-          [devices,socket]
-        else
-          socket.close
-          devices
-        end
+        @bridge = self.new(host,80,body)
       end
     end
 
