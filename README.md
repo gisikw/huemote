@@ -16,6 +16,11 @@ Or install it yourself as:
 
     $ gem install huemote
 
+## Recent Updates:
+### 0.1.0:
+* Added `Huemote::Light#kelvin` - which will delegate to `Huemote::Light#ct`, by computing the mired value (constrained between 154-500 mired)
+* Added support for setting a static IP (honestly, the preferred mechanism at this point; getting a stable method of device detection has been a nightmare). Run `Huemote.set_ip '192.168.1.x'` or equivalent, and then use the library as normal.
+
 ## Usage
 
 You can fetch all lights on your network via:

@@ -8,8 +8,20 @@ module Huemote
     USERNAME    = "HuemoteRubyGem"
 
     class << self
+      def set_ip(ip)
+        @static_ip = ip
+      end
+
       def get
-        @bridge ||= discover
+        @bridge ||= begin
+          if @static_ip
+            client = Huemote::Client.new
+            body = client.get("http://#{@static_ip}:80/description.xml").body
+            self.new(@static_ip,80,body)
+          else
+            discover
+          end
+        end
       end
 
       private

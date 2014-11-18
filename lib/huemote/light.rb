@@ -56,6 +56,10 @@ module Huemote
       on? ? off! : on!
     end
 
+    def kelvin(temp)
+      ct [[1000000/temp,154].max,500].min
+    end
+
     STATES.each do |name,state|
       define_method name do |arg|
         set!(state => arg)

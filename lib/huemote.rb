@@ -8,6 +8,10 @@ module Huemote
   require_relative './huemote/bridge'
 
   class << self
+    def set_ip(ip)
+      Huemote::Bridge.send(:set_ip,ip)
+    end
+
     def discover
       Huemote::Bridge.send(:discover)
     end
